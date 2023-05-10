@@ -1,35 +1,33 @@
-var checkInterval = "30";
+let checkInterval = "600";
 
-var ghostModeState = false;
+let ghostModeState = false;
 
-var autosaveState = true;
+let autosaveState = true;
 
-var watchList;
+let watchList;
 
-var targetLasts;
+let targetLasts;
 
-var targetNotifyLasts;
+let targetNotifyLasts;
 
-var settings;
+let settings;
 
+//#region Telegram Bot Configuration
 
-//************************************----------TelegramBot-------**************************
+let telegramBotState = false;
 
+let telegramNotifyState = false;
 
-var telegramBotState = false;
+let telegramToken = "";
 
-var telegramNotifyState = false;
+let telegramChatId = "";
 
-var telegramToken = "";
+let telegramListener;
 
-var telegramChatId = "";
-
-var telegramListener;
-
-var isTelegramListenerActive = false;
+let isTelegramListenerActive = false;
 
 //in case autosave disabled and notifications disabled
-var keybrd1 = {
+let keybrd1 = {
     "inline_keyboard": [
         [
             {"text": "Enable Autosave", "callback_data": "b1"},
@@ -49,7 +47,7 @@ var keybrd1 = {
 };
 
 //in case autosave enabled and notifications enabled
-var keybrd2 = {
+let keybrd2 = {
     "inline_keyboard": [
         [
             {"text": "Disable Autosave", "callback_data": "b6"},
@@ -69,7 +67,7 @@ var keybrd2 = {
 };
 
 //in case autosave enabled and notifications disabled
-var keybrd3 = {
+let keybrd3 = {
     "inline_keyboard": [
         [
             {"text": "Disable Autosave", "callback_data": "b6"},
@@ -89,7 +87,7 @@ var keybrd3 = {
 };
 
 //in case autosave disabled and notifications enabled
-var keybrd4 = {
+let keybrd4 = {
     "inline_keyboard": [
         [
             {"text": "Enable Autosave", "callback_data": "b1"},
@@ -109,7 +107,7 @@ var keybrd4 = {
 };
 
 //set check interval keyboard
-var setIntervalKeybrd = {
+let setIntervalKeybrd = {
     "inline_keyboard": [
         [
             {"text":"« Go Back", "callback_data": "setIntervalBack"}
@@ -118,7 +116,7 @@ var setIntervalKeybrd = {
 };
 
 //delete deletable message
-var deleteKeyboard = {
+let deleteKeyboard = {
     "inline_keyboard": [
         [
             {"text":"OK!", "callback_data": "delDeletable"}
@@ -126,9 +124,8 @@ var deleteKeyboard = {
     ]
 };
 
-
 // One time Actions Menu
-var oneTimeKeybrd = {
+let oneTimeKeybrd = {
     "inline_keyboard": [
         [
             {"text": "Check by Username", "callback_data": "b5"},
@@ -141,7 +138,7 @@ var oneTimeKeybrd = {
 };
 
 // One time Actions Menu - Off List User After Check Query Keyboard
-var offListKeybrd = {
+let offListKeybrd = {
     "inline_keyboard": [
         [
             {"text": "Download Them", "callback_data": "getOffList"},
@@ -165,22 +162,22 @@ function menuKeybrdSelector(){
 
 function makeWatchlistKeyboard(callback){
 
-    var keyboard = {
+    let keyboard = {
         "inline_keyboard": []
     };
 
     chrome.storage.local.get({'userWatchlist': []}, function(data) {
-        var tempWatchList = data.userWatchlist;
+        let tempWatchList = data.userWatchlist;
 
-        for(var i=0; i < tempWatchList.length; i++){
-            var btnTxt = tempWatchList[i].username;
-            var data = "watchlistUser-" + tempWatchList[i].id;
-            var newBtn = [{"text":btnTxt, "callback_data": data}];
+        for(let i=0; i < tempWatchList.length; i++){
+            let btnTxt = tempWatchList[i].username;
+            let data = "watchlistUser-" + tempWatchList[i].id;
+            let newBtn = [{"text":btnTxt, "callback_data": data}];
 
             keyboard.inline_keyboard.push(newBtn);
         }
 
-        var newAddBckBtn = [
+        let newAddBckBtn = [
             {"text": "Add to Watchlist", "callback_data": "b4"},
             {"text":"« Go Back", "callback_data": "watchlistBack"}
         ];
@@ -192,31 +189,31 @@ function makeWatchlistKeyboard(callback){
 
 function makeCheckWatchlistKeyboard(callback){
 
-    var keyboard = {
+    let keyboard = {
         "inline_keyboard": []
     };
 
     chrome.storage.local.get({'userWatchlist': []}, function(data) {
-        var tempWatchList = data.userWatchlist;
+        let tempWatchList = data.userWatchlist;
 
-        for(var i=0; i < tempWatchList.length; i++){
-            var btnTxt = tempWatchList[i].username;
-            var data = btnTxt + "+üser+" + tempWatchList[i].id;
-            var newBtn = [{"text":btnTxt, "callback_data": data}];
+        for(let i=0; i < tempWatchList.length; i++){
+            let btnTxt = tempWatchList[i].username;
+            let data = btnTxt + "+üser+" + tempWatchList[i].id;
+            let newBtn = [{"text":btnTxt, "callback_data": data}];
 
             keyboard.inline_keyboard.push(newBtn);
         }
 
-        var newOnetimeActBtns = [
+        let newOnetimeActBtns = [
             {"text": "Check by Username", "callback_data": "b5"},
             {"text": "Download by Username", "callback_data": "b7"}
         ];
 
-        var newOffListUserBtn = [
+        let newOffListUserBtn = [
             {"text": "Check not followed User", "callback_data": "offListUserCheck"}
         ];
 
-        var newOnetimeBckBtn = [
+        let newOnetimeBckBtn = [
             {"text": "« Go Back", "callback_data": "goBackOneTimeMenu"}
         ];
 
@@ -228,7 +225,7 @@ function makeCheckWatchlistKeyboard(callback){
     });
 }
 
-//********************************************************************************************
+//#endregion
 
 function updateSettings(){
 
@@ -273,18 +270,16 @@ function updateSettings(){
 updateSettings();
 
 chrome.webRequest.onBeforeRequest.addListener(
-    () => ({
-        cancel: ghostModeState
-    }),
-    { urls: [   '*://*.instagram.com/stories/reel/seen*',
-                '*://*.instagram.com/*/stories/reel/seen*',
-                '*://*.instagram.com/*/*/stories/reel/seen*',
-                '*://*.instagram.com/*/*/direct_v2/threads/*/items/*/seen*' 
-                 ] },
-    [ 'blocking' ]
+    () => ({ cancel: ghostModeState }),
+    { urls: ['*://*.instagram.com/stories/reel/seen*',
+             '*://*.instagram.com/*/stories/reel/seen*',
+             '*://*.instagram.com/*/*/stories/reel/seen*',
+             '*://*.instagram.com/*/*/direct_v2/threads/*/items/*/seen*'
+    ]
+    }, ['blocking']
 );
 
-//************************************----------TelegramBot-------************************
+//#region Telegram Bot logic
 
 function updateAutosaveState(state, callback){
     chrome.storage.local.get({'savedSettings': []}, function(data) {
@@ -320,7 +315,7 @@ function updateNotifyState(state, callback){
                     });
                 }
                 if(callback){
-                    callback();   
+                    callback();
                 }
             });
         }
@@ -339,7 +334,7 @@ function updateCheckInterval(interval, callback){
             chrome.storage.local.set({'savedSettings': settings}, function() {
                 //console.log("saved.");
                 if(callback){
-                    callback();   
+                    callback();
                 }
             });
         }
@@ -352,9 +347,9 @@ function removeFromWatchlist(id, callback){
         watchList = data.userWatchlist;
 
         // get index of object with provided id
-        var removeIndex = watchList.map(function(item) { return item.id; }).indexOf(id);
+        let removeIndex = watchList.map(function(item) { return item.id; }).indexOf(id);
 
-        var usernameOfDeleted = watchList[removeIndex].username;
+        let usernameOfDeleted = watchList[removeIndex].username;
 
         // remove object
         watchList.splice(removeIndex, 1);
@@ -379,7 +374,7 @@ function removeFromWatchlist(id, callback){
 
 function addUserToList(usernameIn, idIn, callback){
 
-    var newUser = {username:usernameIn, id:idIn};
+    let newUser = {username:usernameIn, id:idIn};
 
     chrome.storage.local.get({'userWatchlist': []}, function(data) {
         watchList = data.userWatchlist;
@@ -405,9 +400,9 @@ function addUserToList(usernameIn, idIn, callback){
 
 function telegramSendMessage(message, callback){
 
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.onload = function() {
-        var json = xhr.responseText;                         // Response
+        let json = xhr.responseText;                         // Response
         json = JSON.parse(json);
         if(callback){
             callback(json.result.message_id);
@@ -423,7 +418,7 @@ function telegramSendMessage(message, callback){
 }
 
 function telegramDeleteMessage(messageId){
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/deleteMessage', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
@@ -433,7 +428,7 @@ function telegramDeleteMessage(messageId){
 }
 
 function telegramEditMessageMarkup(messageId, markup){
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/editMessageReplyMarkup', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
@@ -442,8 +437,9 @@ function telegramEditMessageMarkup(messageId, markup){
         reply_markup:markup
     }));
 }
+
 function telegramEditMessageTextMarkup(messageId, text, markup){
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/editMessageText', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
@@ -456,8 +452,7 @@ function telegramEditMessageTextMarkup(messageId, text, markup){
 }
 
 function telegramAnswer(queryId, text, showAlert){
-
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/answerCallbackQuery', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
@@ -469,9 +464,9 @@ function telegramAnswer(queryId, text, showAlert){
 
 function telegramSendInline(message, keybrd, callback){
 
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.onload = function() {
-        var json = xhr.responseText;                         // Response
+        let json = xhr.responseText;                         // Response
         json = JSON.parse(json);
         if(callback){
             callback(json.result.message_id);
@@ -490,73 +485,113 @@ function telegramSendInline(message, keybrd, callback){
 
 function timestampToDate(timestamp){
 
-    var ts_ms = timestamp * 1000;
-    var date_ob = new Date(ts_ms);
-    var year = date_ob.getFullYear();
-    var month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
-    var date = ("0" + date_ob.getDate()).slice(-2);
-    var hours = ("0" + date_ob.getHours()).slice(-2);
-    var minutes = ("0" + date_ob.getMinutes()).slice(-2);
-    var seconds = ("0" + date_ob.getSeconds()).slice(-2);
+    let ts_ms = timestamp * 1000;
+    let date_ob = new Date(ts_ms);
+    let year = date_ob.getFullYear();
+    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+    let date = ("0" + date_ob.getDate()).slice(-2);
+    let hours = ("0" + date_ob.getHours()).slice(-2);
+    let minutes = ("0" + date_ob.getMinutes()).slice(-2);
+    let seconds = ("0" + date_ob.getSeconds()).slice(-2);
 
-    var dateString = date + "/" + month + "/" + year + "  " + hours + ":" + minutes + ":" + seconds;
+    let dateString = date + "/" + month + "/" + year + "  " + hours + ":" + minutes + ":" + seconds;
 
     return dateString;
 }
 
 function sendNotification(link, username, timestamp) {
-    var date = timestampToDate(timestamp);
+    let date = timestampToDate(timestamp);
 
-    var message = "<b>" + username + "</b> shared <a href='" + link + "'>this</a> story on " + date;
+    let message = "<b>" + username + "</b> shared <a href='" + link + "'>this</a> story on " + date;
 
     telegramSendMessage(message);
 }
 
 
-function startListenTelegram(){
+function startListenTelegram() {
+    if (isTelegramListenerActive) {
+        return
+    }
 
-    if(!isTelegramListenerActive){
+    let offset = 0;
 
-        var offset = 0;
+    let menuMessageId = 0;
+    let menuKeybrd;
+    let invalidEnterMesId = 0;
+    let succsessMesId = 0;
 
-        var menuMessageId = 0;
-        var menuKeybrd;
-        var invalidEnterMesId = 0;
-        var succsessMesId = 0;
+    let waitForIntervalReply = false;
 
-        var waitForIntervalReply = false;
+    let expectUsername = false;
+    let gotUsername = 0;
+    let lastGotUsernameMesId = 0;
+    let gotUsernameTxt = "";
 
-        var expectUsername = false;
-        var gotUsername = 0;
-        var lastGotUsernameMesId = 0;
-        var gotUsernameTxt = "";
+    let delCheckMesId = "0";
 
-        var delCheckMesId = "0";
+    let xhr = new XMLHttpRequest();
 
-        var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        let json = xhr.responseText; // Response
+        json = JSON.parse(json);
+        let result = json.result;
 
-        xhr.onload = function() {
-            var json = xhr.responseText;                         // Response
-            json = JSON.parse(json);
-            var result = json.result;
+        if(result){
+            for(let i=0; i < result.length; i++){
 
-            if(result){
-                for(var i=0; i < result.length; i++){
+                let updateId = result[i].update_id;
 
-                    var updateId = result[i].update_id;
+                offset = parseInt(updateId) + 1;
 
-                    offset = parseInt(updateId) + 1;
+                if(result[i].message){
+                    if(result[i].message.from.id == telegramChatId){
 
-                    if(result[i].message){
-                        if(result[i].message.from.id == telegramChatId){
+                        if(result[i].message.text == "menu" || result[i].message.text == "/menu" || result[i].message.text == "Menu"){
 
-                            if(result[i].message.text == "menu" || result[i].message.text == "/menu" || result[i].message.text == "Menu"){
+                            waitForIntervalReply = false;
+                            expectUsername = false;
+                            gotUsername = 0;
+                            gotUsernameTxt = "";
 
-                                waitForIntervalReply = false;
-                                expectUsername = false;
-                                gotUsername = 0;
-                                gotUsernameTxt = "";
+                            if(invalidEnterMesId != 0){
+                                telegramDeleteMessage(invalidEnterMesId);
+                                invalidEnterMesId = 0;
+                            }
+                            if(succsessMesId != 0){
+                                telegramDeleteMessage(succsessMesId);
+                                succsessMesId = 0;
+                            }
+                            if(lastGotUsernameMesId != 0){
+                                telegramDeleteMessage(lastGotUsernameMesId);
+                                lastGotUsernameMesId = 0;
+                            }
 
+                            if(menuMessageId == 0){
+                                telegramDeleteMessage(result[i].message.message_id);
+                                let ms = "<b>Instagram Black Menu</b>" ;
+                                menuKeybrd = menuKeybrdSelector();
+                                telegramSendInline(ms, menuKeybrd, function(messId){
+                                    menuMessageId = messId;
+                                });
+                            }else{
+                                telegramDeleteMessage(menuMessageId);
+                                menuMessageId = 0;
+                                telegramDeleteMessage(result[i].message.message_id);
+                                let ms = "<b>Instagram Black Menu</b>" ;
+                                menuKeybrd = menuKeybrdSelector();
+                                telegramSendInline(ms, menuKeybrd, function(messId){
+                                    menuMessageId = messId;
+                                });
+                            }
+
+
+                        }else if(waitForIntervalReply){
+                            let mesTxt = result[i].message.text;
+
+                            let asInt = parseInt(mesTxt);
+
+                            if(asInt <= 3600 && asInt >= 10){
+                                telegramDeleteMessage(result[i].message.message_id);
                                 if(invalidEnterMesId != 0){
                                     telegramDeleteMessage(invalidEnterMesId);
                                     invalidEnterMesId = 0;
@@ -565,438 +600,299 @@ function startListenTelegram(){
                                     telegramDeleteMessage(succsessMesId);
                                     succsessMesId = 0;
                                 }
-                                if(lastGotUsernameMesId != 0){
-                                    telegramDeleteMessage(lastGotUsernameMesId);
-                                    lastGotUsernameMesId = 0;
-                                }
 
-                                if(menuMessageId == 0){
-                                    telegramDeleteMessage(result[i].message.message_id);
-                                    var ms = "<b>Instagram Black Menu</b>" ;
-                                    menuKeybrd = menuKeybrdSelector();
-                                    telegramSendInline(ms, menuKeybrd, function(messId){
-                                        menuMessageId = messId;
+                                let succsessMes = "Check Interval set to: " + mesTxt;
+
+                                updateCheckInterval(mesTxt, function(){
+                                    telegramSendMessage(succsessMes,function(sentMesId){
+                                        succsessMesId = sentMesId;
+                                        let intervalMenuRefMessage = "<b>Instagram Black Menu</b>\nCurrent interval: <b>" + checkInterval + "</b>\nEnter interval in seconds 10-3600:";
+                                        telegramEditMessageTextMarkup(menuMessageId, intervalMenuRefMessage, setIntervalKeybrd);
                                     });
-                                }else{
-                                    telegramDeleteMessage(menuMessageId);
-                                    menuMessageId = 0;
-                                    telegramDeleteMessage(result[i].message.message_id);
-                                    var ms = "<b>Instagram Black Menu</b>" ;
-                                    menuKeybrd = menuKeybrdSelector();
-                                    telegramSendInline(ms, menuKeybrd, function(messId){
-                                        menuMessageId = messId;
-                                    });
-                                }
-
-
-                            }else if(waitForIntervalReply){
-                                var mesTxt = result[i].message.text;
-
-                                var asInt = parseInt(mesTxt);
-
-                                if(asInt <= 3600 && asInt >= 10){
-                                    telegramDeleteMessage(result[i].message.message_id);
-                                    if(invalidEnterMesId != 0){
-                                        telegramDeleteMessage(invalidEnterMesId);
-                                        invalidEnterMesId = 0;
-                                    }
-                                    if(succsessMesId != 0){
-                                        telegramDeleteMessage(succsessMesId);
-                                        succsessMesId = 0;
-                                    }
-
-                                    var succsessMes = "Check Interval set to: " + mesTxt;
-
-                                    updateCheckInterval(mesTxt, function(){
-                                        telegramSendMessage(succsessMes,function(sentMesId){
-                                            succsessMesId = sentMesId;
-                                            var intervalMenuRefMessage = "<b>Instagram Black Menu</b>\nCurrent interval: <b>" + checkInterval + "</b>\nEnter interval in seconds 10-3600:";
-                                            telegramEditMessageTextMarkup(menuMessageId, intervalMenuRefMessage, setIntervalKeybrd);
-                                        });
-                                    });
-
-                                }else{
-                                    telegramDeleteMessage(result[i].message.message_id);
-                                    if(succsessMesId != 0){
-                                        telegramDeleteMessage(succsessMesId);
-                                        succsessMesId = 0;
-                                    }
-                                    if(invalidEnterMesId == 0){
-                                        telegramSendMessage("invalid enter please type numbers between 10-3600",function(sentMesId){
-                                            invalidEnterMesId = sentMesId;
-                                        });
-                                    }
-                                }
-
-                            }else if(expectUsername){
-                                gotUsernameTxt = result[i].message.text;
-                                gotUsername++;
-
-                                if(gotUsername == 2){
-                                    telegramDeleteMessage(lastGotUsernameMesId);
-                                    gotUsername--;
-                                }
-
-                                lastGotUsernameMesId = result[i].message.message_id;
+                                });
 
                             }else{
-                                if(menuMessageId != 0){
-                                    telegramDeleteMessage(result[i].message.message_id);
+                                telegramDeleteMessage(result[i].message.message_id);
+                                if(succsessMesId != 0){
+                                    telegramDeleteMessage(succsessMesId);
+                                    succsessMesId = 0;
+                                }
+                                if(invalidEnterMesId == 0){
+                                    telegramSendMessage("invalid enter please type numbers between 10-3600",function(sentMesId){
+                                        invalidEnterMesId = sentMesId;
+                                    });
                                 }
                             }
 
+                        }else if(expectUsername){
+                            gotUsernameTxt = result[i].message.text;
+                            gotUsername++;
+
+                            if(gotUsername == 2){
+                                telegramDeleteMessage(lastGotUsernameMesId);
+                                gotUsername--;
+                            }
+
+                            lastGotUsernameMesId = result[i].message.message_id;
+
+                        }else{
+                            if(menuMessageId != 0){
+                                telegramDeleteMessage(result[i].message.message_id);
+                            }
                         }
-                    }else if(result[i].callback_query){
-                        if(result[i].callback_query.from.id == telegramChatId){
 
-                            var callback_query = result[i].callback_query;
+                    }
+                }else if(result[i].callback_query){
+                    if(result[i].callback_query.from.id == telegramChatId){
 
-                            waitForIntervalReply = false;
+                        let callback_query = result[i].callback_query;
 
-                            switch(callback_query.data) {
-                                case "b1": // Enable Autosave Button
-                                    if(!autosaveState){
-                                        updateAutosaveState(true,function(){
-                                            telegramAnswer(callback_query.id, "Autosave Enabled", false);
-                                            menuKeybrd = menuKeybrdSelector();
-                                            telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                        });
-                                    }else{
-                                        telegramAnswer(callback_query.id, "Autosave Enabled Allready", false);
+                        waitForIntervalReply = false;
+
+                        switch(callback_query.data) {
+                            case "b1": // Enable Autosave Button
+                                if(!autosaveState){
+                                    updateAutosaveState(true,function(){
+                                        telegramAnswer(callback_query.id, "Autosave Enabled", false);
                                         menuKeybrd = menuKeybrdSelector();
                                         telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                    }
-                                    break;
+                                    });
+                                }else{
+                                    telegramAnswer(callback_query.id, "Autosave Enabled Allready", false);
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageMarkup(menuMessageId, menuKeybrd);
+                                }
+                                break;
 
-                                case "b6": // Disable Autosave Button
-                                    if(autosaveState){
-                                        updateAutosaveState(false,function(){
-                                            telegramAnswer(callback_query.id, "Autosave Disabled", false);
-                                            menuKeybrd = menuKeybrdSelector();
-                                            telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                        });
-                                    }else{
-                                        telegramAnswer(callback_query.id, "Autosave Disabled Allready", false);
+                            case "b6": // Disable Autosave Button
+                                if(autosaveState){
+                                    updateAutosaveState(false,function(){
+                                        telegramAnswer(callback_query.id, "Autosave Disabled", false);
                                         menuKeybrd = menuKeybrdSelector();
                                         telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                    }
-                                    break;
+                                    });
+                                }else{
+                                    telegramAnswer(callback_query.id, "Autosave Disabled Allready", false);
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageMarkup(menuMessageId, menuKeybrd);
+                                }
+                                break;
 
-                                case "b9": // Enable Notifications
-                                    if(!telegramNotifyState){
-                                        updateNotifyState(true,function(){
-                                            telegramAnswer(callback_query.id, "Notifications Enabled", false);
-                                            menuKeybrd = menuKeybrdSelector();
-                                            telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                        });
-                                    }else{
-                                        telegramAnswer(callback_query.id, "Notifications Enabled Allready", false);
+                            case "b9": // Enable Notifications
+                                if(!telegramNotifyState){
+                                    updateNotifyState(true,function(){
+                                        telegramAnswer(callback_query.id, "Notifications Enabled", false);
                                         menuKeybrd = menuKeybrdSelector();
                                         telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                    }
-                                    break;
+                                    });
+                                }else{
+                                    telegramAnswer(callback_query.id, "Notifications Enabled Allready", false);
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageMarkup(menuMessageId, menuKeybrd);
+                                }
+                                break;
 
-                                case "b10": // Disable Notifications
-                                    if(telegramNotifyState){
-                                        updateNotifyState(false,function(){
-                                            telegramAnswer(callback_query.id, "Notifications Disabled", false);
-                                            menuKeybrd = menuKeybrdSelector();
-                                            telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                        });
-                                    }else{
-                                        telegramAnswer(callback_query.id, "Notifications Disabled Allready", false);
+                            case "b10": // Disable Notifications
+                                if(telegramNotifyState){
+                                    updateNotifyState(false,function(){
+                                        telegramAnswer(callback_query.id, "Notifications Disabled", false);
                                         menuKeybrd = menuKeybrdSelector();
                                         telegramEditMessageMarkup(menuMessageId, menuKeybrd);
-                                    }
-                                    break;
+                                    });
+                                }else{
+                                    telegramAnswer(callback_query.id, "Notifications Disabled Allready", false);
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageMarkup(menuMessageId, menuKeybrd);
+                                }
+                                break;
 
-                                case "b2": // Set Check Interval Button
+                            case "b2": // Set Check Interval Button
+                                telegramAnswer(callback_query.id, "", false);
+                                let intervalMenuMessage = "<b>Instagram Black Menu</b>\nCurrent interval: <b>" + checkInterval + "</b>\nEnter interval in seconds 10-3600:";
+                                telegramEditMessageTextMarkup(menuMessageId, intervalMenuMessage, setIntervalKeybrd);
+                                waitForIntervalReply = true;
+                                break;
+
+                            case "setIntervalBack": // Go back from set check interval
+                                if(invalidEnterMesId != 0){
+                                    telegramDeleteMessage(invalidEnterMesId);
+                                }
+                                if(succsessMesId != 0){
+                                    telegramDeleteMessage(succsessMesId);
+                                }
+                                menuKeybrd = menuKeybrdSelector();
+                                telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
+                                waitForIntervalReply = false;
+                                telegramAnswer(callback_query.id, "", false);
+                                break;
+
+                            case "b3": // Show Watchlist Button
+                                makeWatchlistKeyboard(function(listKeybrd){
+                                    let menuTxt = "<b>Instagram Black Menu</b>\n\n<b>Watchlist</b>\n\nTouch username to remove from list.\n\nSend username you want to add and touch add to watchlist.";
+
+                                    telegramEditMessageTextMarkup(menuMessageId, menuTxt, listKeybrd);
+                                    expectUsername = true;
                                     telegramAnswer(callback_query.id, "", false);
-                                    var intervalMenuMessage = "<b>Instagram Black Menu</b>\nCurrent interval: <b>" + checkInterval + "</b>\nEnter interval in seconds 10-3600:";
-                                    telegramEditMessageTextMarkup(menuMessageId, intervalMenuMessage, setIntervalKeybrd);
-                                    waitForIntervalReply = true;
-                                    break;
+                                });
+                                break;
 
-                                case "setIntervalBack": // Go back from set check interval
-                                    if(invalidEnterMesId != 0){
-                                        telegramDeleteMessage(invalidEnterMesId);
-                                    }
-                                    if(succsessMesId != 0){
-                                        telegramDeleteMessage(succsessMesId);
-                                    }
+                            case "watchlistBack": // Go Back from Watchlist
+                                if(gotUsername==0){
+                                    expectUsername = false;
+                                    lastGotUsernameMesId = 0;
+                                    gotUsernameTxt = "";
                                     menuKeybrd = menuKeybrdSelector();
                                     telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
-                                    waitForIntervalReply = false;
                                     telegramAnswer(callback_query.id, "", false);
-                                    break;
+                                }else{
+                                    expectUsername = false;
+                                    gotUsername = 0;
+                                    telegramDeleteMessage(lastGotUsernameMesId);
+                                    lastGotUsernameMesId = 0;
+                                    gotUsernameTxt = "";
 
-                                case "b3": // Show Watchlist Button
-                                    makeWatchlistKeyboard(function(listKeybrd){
-                                        var menuTxt = "<b>Instagram Black Menu</b>\n\n<b>Watchlist</b>\n\nTouch username to remove from list.\n\nSend username you want to add and touch add to watchlist.";
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
+                                    telegramAnswer(callback_query.id, "", false);
+                                }
+                                break;
 
-                                        telegramEditMessageTextMarkup(menuMessageId, menuTxt, listKeybrd);
-                                        expectUsername = true;
-                                        telegramAnswer(callback_query.id, "", false);
-                                    });
-                                    break;
-
-                                case "watchlistBack": // Go Back from Watchlist
-                                    if(gotUsername==0){
-                                        expectUsername = false;
-                                        lastGotUsernameMesId = 0;
-                                        gotUsernameTxt = "";
-                                        menuKeybrd = menuKeybrdSelector();
-                                        telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }else{
-                                        expectUsername = false;
-                                        gotUsername = 0;
+                            case "b4": // Add to Watchlist Button
+                                if(gotUsername == 0){
+                                    telegramAnswer(callback_query.id, "Send username first.", true);
+                                }else{
+                                    if(watchList.find(x => x.username === gotUsernameTxt)){
                                         telegramDeleteMessage(lastGotUsernameMesId);
-                                        lastGotUsernameMesId = 0;
-                                        gotUsernameTxt = "";
-
-                                        menuKeybrd = menuKeybrdSelector();
-                                        telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }
-                                    break;
-
-                                case "b4": // Add to Watchlist Button
-                                    if(gotUsername == 0){
-                                        telegramAnswer(callback_query.id, "Send username first.", true);
+                                        gotUsername--;
+                                        telegramAnswer(callback_query.id, "Username allready on list!", true);
                                     }else{
-                                        if(watchList.find(x => x.username === gotUsernameTxt)){
-                                            telegramDeleteMessage(lastGotUsernameMesId);
-                                            gotUsername--;
-                                            telegramAnswer(callback_query.id, "Username allready on list!", true);
-                                        }else{
-                                            getIdByUsername(gotUsernameTxt, function(id){
-                                                if(id != "0"){
+                                        getIdByUsername(gotUsernameTxt, function(id){
+                                            if(id != "0"){
 
-                                                    addUserToList(gotUsernameTxt, id, function(){
-                                                        telegramDeleteMessage(lastGotUsernameMesId);
-                                                        gotUsername--;
-                                                        makeWatchlistKeyboard(function(listKeybrd){
-                                                            telegramEditMessageMarkup(menuMessageId, listKeybrd);
-                                                            var addedMes = gotUsernameTxt + " added to Watchlist";
-                                                            telegramAnswer(callback_query.id, addedMes, false);
-                                                        });
-                                                    });
-                                                }else{
+                                                addUserToList(gotUsernameTxt, id, function(){
                                                     telegramDeleteMessage(lastGotUsernameMesId);
                                                     gotUsername--;
-                                                    telegramAnswer(callback_query.id, "Username invalid!", true);
-                                                }
-                                            });
-                                        }
-                                    }
-                                    break;
-
-                                case "oneTimeMenu": // Open One Time Actions Menu
-
-                                    var onetimeMenuTxt = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do. Or just touch to username to check inline.";
-
-                                    makeCheckWatchlistKeyboard(function(listKeybrd){
-                                        telegramEditMessageTextMarkup(menuMessageId, onetimeMenuTxt, listKeybrd);
-                                        expectUsername = true;
-                                        telegramAnswer(callback_query.id, "", false);
-                                    });
-
-                                    break;
-
-                                case "goBackOneTimeMenu": // Go Back from One Time Actions Menu
-
-                                    if(gotUsername==0){
-                                        expectUsername = false;
-                                        lastGotUsernameMesId = 0;
-                                        gotUsernameTxt = "";
-                                        menuKeybrd = menuKeybrdSelector();
-                                        telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }else{
-                                        expectUsername = false;
-                                        gotUsername = 0;
-                                        telegramDeleteMessage(lastGotUsernameMesId);
-                                        lastGotUsernameMesId = 0;
-                                        gotUsernameTxt = "";
-
-                                        menuKeybrd = menuKeybrdSelector();
-                                        telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }
-
-                                    break;
-
-                                case "b5": // Check by Username Button
-                                    if(gotUsername == 0){
-                                        telegramAnswer(callback_query.id, "Send username first.", true);
-                                    }else{
-                                        getIdByUsername(gotUsernameTxt, function(id){
-                                            if(id != "0"){
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-
-                                                check(id,true,false,true,true,false,function(state){
-                                                    switch(state){
-                                                        case "nothing":
-                                                            telegramAnswer(callback_query.id, "User don't have stories.", true);
-                                                            break;
-                                                        case "gotAll":
-                                                            var onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
-
-                                                            telegramDeleteMessage(menuMessageId);
-                                                            menuMessageId = 0;
-
-                                                            makeCheckWatchlistKeyboard(function(listKeybrd){
-                                                                telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
-                                                                    menuMessageId = messId;
-                                                                });
-                                                            });
-
-                                                            telegramAnswer(callback_query.id, "We got all.", true);
-                                                            break;
-                                                        default:
-                                                            telegramAnswer(callback_query.id, "", false);
-                                                    }
-                                                });
-
-                                            }else{
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-                                                telegramAnswer(callback_query.id, "Username invalid!", true);
-                                            }
-                                        });
-                                    }
-                                    break;
-
-                                case "b7": // Download by Username
-                                    if(gotUsername == 0){
-                                        telegramAnswer(callback_query.id, "Send username first.", true);
-                                    }else{
-                                        getIdByUsername(gotUsernameTxt, function(id){
-                                            if(id != "0"){
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-
-
-                                                check(id,true,true,true,false,false,function(state){
-                                                    switch(state){
-                                                        case "nothing":
-                                                            telegramAnswer(callback_query.id, "User don't have stories.", true);
-                                                            break;
-                                                        case "gotAll":
-                                                            var onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
-
-                                                            telegramDeleteMessage(menuMessageId);
-                                                            menuMessageId = 0;
-
-                                                            makeCheckWatchlistKeyboard(function(listKeybrd){
-                                                                telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
-                                                                    menuMessageId = messId;
-                                                                });
-                                                            });
-
-                                                            telegramAnswer(callback_query.id, "We got all.", true);
-                                                            break;
-                                                        case "haveThem":
-                                                            telegramAnswer(callback_query.id, "Allready have this users stories.", true);
-                                                            break;
-                                                        default:
-                                                            telegramAnswer(callback_query.id, "", false);
-                                                    }
-                                                });
-
-                                            }else{
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-                                                telegramAnswer(callback_query.id, "Username invalid!", true);
-                                            }
-                                        });
-                                    }
-                                    break;
-
-                                case "offListUserCheck": // Check someone not followed
-                                    if(gotUsername == 0){
-                                        telegramAnswer(callback_query.id, "Send username first.", true);
-                                    }else{
-                                        getIdByUsername(gotUsernameTxt, function(id){
-                                            if(id != "0"){
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-                                                check(id,true,false,true,true,true,function(state){
-                                                    switch(state){
-                                                        case "nothing":
-                                                            telegramAnswer(callback_query.id, "User don't have stories.", true);
-                                                            break;
-                                                        case "gotAll":
-                                                            telegramSendInline("We got all.", offListKeybrd, function(messId){
-                                                                delCheckMesId = messId;
-                                                            });
-
-                                                            telegramAnswer(callback_query.id, "We got all. Do u want me to download them ?", true);
-                                                            break;
-                                                        default:
-                                                            telegramAnswer(callback_query.id, "", false);
-                                                    }
-                                                });
-
-                                            }else{
-                                                telegramDeleteMessage(lastGotUsernameMesId);
-                                                gotUsername--;
-                                                telegramAnswer(callback_query.id, "Username invalid!", true);
-                                            }
-                                        });
-                                    }
-                                    break;
-
-                                case "doneOffList": // done with off list user
-                                    if(delCheckMesId != "0"){
-                                        telegramDeleteMessage(delCheckMesId);
-                                        delCheckMesId = "0";
-                                    }
-
-                                    var onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
-
-                                    telegramDeleteMessage(menuMessageId);
-                                    menuMessageId = 0;
-
-                                    makeCheckWatchlistKeyboard(function(listKeybrd){
-                                        telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
-                                            menuMessageId = messId;
-                                        });
-                                    });
-
-                                    telegramAnswer(callback_query.id, "", false);
-                                    break;
-
-                                case "getOffList": // download off list user stories if not exist on server
-
-                                    getIdByUsername(gotUsernameTxt, function(id){
-                                        if(id != "0"){
-                                            check(id,true,true,false,false,true,function(state){
-
-                                                if(delCheckMesId != "0"){
-                                                    telegramDeleteMessage(delCheckMesId);
-                                                    delCheckMesId = "0";
-                                                }
-
-                                                var onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
-
-                                                telegramDeleteMessage(menuMessageId);
-                                                menuMessageId = 0;
-
-                                                makeCheckWatchlistKeyboard(function(listKeybrd){
-                                                    telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
-                                                        menuMessageId = messId;
+                                                    makeWatchlistKeyboard(function(listKeybrd){
+                                                        telegramEditMessageMarkup(menuMessageId, listKeybrd);
+                                                        let addedMes = gotUsernameTxt + " added to Watchlist";
+                                                        telegramAnswer(callback_query.id, addedMes, false);
                                                     });
                                                 });
+                                            }else{
+                                                telegramDeleteMessage(lastGotUsernameMesId);
+                                                gotUsername--;
+                                                telegramAnswer(callback_query.id, "Username invalid!", true);
+                                            }
+                                        });
+                                    }
+                                }
+                                break;
 
+                            case "oneTimeMenu": // Open One Time Actions Menu
+
+                                let onetimeMenuTxt = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do. Or just touch to username to check inline.";
+
+                                makeCheckWatchlistKeyboard(function(listKeybrd){
+                                    telegramEditMessageTextMarkup(menuMessageId, onetimeMenuTxt, listKeybrd);
+                                    expectUsername = true;
+                                    telegramAnswer(callback_query.id, "", false);
+                                });
+
+                                break;
+
+                            case "goBackOneTimeMenu": // Go Back from One Time Actions Menu
+
+                                if(gotUsername==0){
+                                    expectUsername = false;
+                                    lastGotUsernameMesId = 0;
+                                    gotUsernameTxt = "";
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
+                                    telegramAnswer(callback_query.id, "", false);
+                                }else{
+                                    expectUsername = false;
+                                    gotUsername = 0;
+                                    telegramDeleteMessage(lastGotUsernameMesId);
+                                    lastGotUsernameMesId = 0;
+                                    gotUsernameTxt = "";
+
+                                    menuKeybrd = menuKeybrdSelector();
+                                    telegramEditMessageTextMarkup(menuMessageId, "<b>Instagram Black Menu</b>", menuKeybrd);
+                                    telegramAnswer(callback_query.id, "", false);
+                                }
+
+                                break;
+
+                            case "b5": // Check by Username Button
+                                if(gotUsername == 0){
+                                    telegramAnswer(callback_query.id, "Send username first.", true);
+                                }else{
+                                    getIdByUsername(gotUsernameTxt, function(id){
+                                        if(id != "0"){
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+
+                                            check(id,true,false,true,true,false,function(state){
                                                 switch(state){
                                                     case "nothing":
-                                                        telegramAnswer(callback_query.id, "Opps!", true);
+                                                        telegramAnswer(callback_query.id, "User don't have stories.", true);
                                                         break;
                                                     case "gotAll":
-                                                        telegramAnswer(callback_query.id, "Downloaded all to server.", true);
+                                                        let onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
+
+                                                        telegramDeleteMessage(menuMessageId);
+                                                        menuMessageId = 0;
+
+                                                        makeCheckWatchlistKeyboard(function(listKeybrd){
+                                                            telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
+                                                                menuMessageId = messId;
+                                                            });
+                                                        });
+
+                                                        telegramAnswer(callback_query.id, "We got all.", true);
+                                                        break;
+                                                    default:
+                                                        telegramAnswer(callback_query.id, "", false);
+                                                }
+                                            });
+
+                                        }else{
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+                                            telegramAnswer(callback_query.id, "Username invalid!", true);
+                                        }
+                                    });
+                                }
+                                break;
+
+                            case "b7": // Download by Username
+                                if(gotUsername == 0){
+                                    telegramAnswer(callback_query.id, "Send username first.", true);
+                                }else{
+                                    getIdByUsername(gotUsernameTxt, function(id){
+                                        if(id != "0"){
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+
+
+                                            check(id,true,true,true,false,false,function(state){
+                                                switch(state){
+                                                    case "nothing":
+                                                        telegramAnswer(callback_query.id, "User don't have stories.", true);
+                                                        break;
+                                                    case "gotAll":
+                                                        let onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
+
+                                                        telegramDeleteMessage(menuMessageId);
+                                                        menuMessageId = 0;
+
+                                                        makeCheckWatchlistKeyboard(function(listKeybrd){
+                                                            telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
+                                                                menuMessageId = messId;
+                                                            });
+                                                        });
+
+                                                        telegramAnswer(callback_query.id, "We got all.", true);
                                                         break;
                                                     case "haveThem":
                                                         telegramAnswer(callback_query.id, "Allready have this users stories.", true);
@@ -1004,110 +900,207 @@ function startListenTelegram(){
                                                     default:
                                                         telegramAnswer(callback_query.id, "", false);
                                                 }
-
                                             });
 
                                         }else{
-                                            telegramAnswer(callback_query.id, "Opps!", true);
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+                                            telegramAnswer(callback_query.id, "Username invalid!", true);
                                         }
-                                    });                                    
-                                    break;
+                                    });
+                                }
+                                break;
 
-                                case "b8": // Close Menu
-                                    telegramAnswer(callback_query.id, "", false);
-                                    telegramDeleteMessage(menuMessageId);
-                                    menuMessageId = 0;
-                                    break;
+                            case "offListUserCheck": // Check someone not followed
+                                if(gotUsername == 0){
+                                    telegramAnswer(callback_query.id, "Send username first.", true);
+                                }else{
+                                    getIdByUsername(gotUsernameTxt, function(id){
+                                        if(id != "0"){
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+                                            check(id,true,false,true,true,true,function(state){
+                                                switch(state){
+                                                    case "nothing":
+                                                        telegramAnswer(callback_query.id, "User don't have stories.", true);
+                                                        break;
+                                                    case "gotAll":
+                                                        telegramSendInline("We got all.", offListKeybrd, function(messId){
+                                                            delCheckMesId = messId;
+                                                        });
 
-                                case "delDeletable": // delete deletable message if exist
-                                    if(delCheckMesId != "0"){
-                                        telegramDeleteMessage(delCheckMesId);
-                                        delCheckMesId = "0";
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }else{
-                                        telegramAnswer(callback_query.id, "", false);
-                                    }
-                                    break;
-
-                                default:
-                                    if(callback_query.data.indexOf("watchlistUser-") == 0){
-                                        var idToDelete = (callback_query.data).slice(14);
-                                        removeFromWatchlist(idToDelete, function(usrname){
-                                            makeWatchlistKeyboard(function(listKeybrd){
-                                                telegramEditMessageMarkup(menuMessageId, listKeybrd);
-                                                var deleteMs = usrname + "removed from list.";
-                                                telegramAnswer(callback_query.id, deleteMs, false);
+                                                        telegramAnswer(callback_query.id, "We got all. Do u want me to download them ?", true);
+                                                        break;
+                                                    default:
+                                                        telegramAnswer(callback_query.id, "", false);
+                                                }
                                             });
-                                        });
-                                    }
-                                    if(callback_query.data.indexOf("+üser+") != -1){
-                                        var usernameAndId = callback_query.data;
 
-                                        let n = usernameAndId.indexOf("+üser+");
-                                        var usernameToSend = usernameAndId.slice(0, n);
-                                        var idToCheck = usernameAndId.slice(n+6);
+                                        }else{
+                                            telegramDeleteMessage(lastGotUsernameMesId);
+                                            gotUsername--;
+                                            telegramAnswer(callback_query.id, "Username invalid!", true);
+                                        }
+                                    });
+                                }
+                                break;
 
-                                        check(idToCheck, true, false, false, true, false, function(got){
-                                            if(got == "nothing"){
-                                                telegramAnswer(callback_query.id, "User don't have any story.", true);
-                                            }else if(got == "opps"){
-                                                telegramAnswer(callback_query.id, "Opps!", true);
-                                            }else{
+                            case "doneOffList": // done with off list user
+                                if(delCheckMesId != "0"){
+                                    telegramDeleteMessage(delCheckMesId);
+                                    delCheckMesId = "0";
+                                }
 
-                                                var deletableMes = "<b>" + usernameToSend + "</b> shared";
+                                let onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
 
-                                                for(let v = 0; v < got.length; v++){
+                                telegramDeleteMessage(menuMessageId);
+                                menuMessageId = 0;
 
-                                                    if(got[v].is_video == true){
-                                                        //video
-                                                        let timeStamp = got[v].taken_at_timestamp;
-                                                        let timeStampTxt = timestampToDate(timeStamp);
-                                                        let videoRes = got[v].video_resources;
-                                                        let fileURL = videoRes[videoRes.length-1].src;
+                                makeCheckWatchlistKeyboard(function(listKeybrd){
+                                    telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
+                                        menuMessageId = messId;
+                                    });
+                                });
 
-                                                        let newStoryTxt = "\n<a href='" + fileURL + "'>this</a> story on " + timeStampTxt;
-                                                        deletableMes = deletableMes.concat(newStoryTxt);
+                                telegramAnswer(callback_query.id, "", false);
+                                break;
 
-                                                    }else{
-                                                        //photo
-                                                        let timeStamp = got[v].taken_at_timestamp;
-                                                        let timeStampTxt = timestampToDate(timeStamp);
-                                                        let photoRes = got[v].display_resources;
-                                                        let fileURL = photoRes[photoRes.length-1].src;
+                            case "getOffList": // download off list user stories if not exist on server
 
-                                                        let newStoryTxt = "\n<a href='" + fileURL + "'>this</a> story on " + timeStampTxt;
-                                                        deletableMes = deletableMes.concat(newStoryTxt);
-                                                    }
-                                                }
+                                getIdByUsername(gotUsernameTxt, function(id){
+                                    if(id != "0"){
+                                        check(id,true,true,false,false,true,function(state){
 
-                                                if(delCheckMesId != "0"){
-                                                    telegramDeleteMessage(delCheckMesId);
-                                                    delCheckMesId = "0";
-                                                }
-                                                telegramSendInline(deletableMes,deleteKeyboard,function(deletableMesId){
-                                                    delCheckMesId = deletableMesId;
-                                                    telegramAnswer(callback_query.id, "", false);
-                                                });
+                                            if(delCheckMesId != "0"){
+                                                telegramDeleteMessage(delCheckMesId);
+                                                delCheckMesId = "0";
                                             }
-                                        });
-                                    }
-                            }
 
-                        }else{
-                            //do nothing just delete by increasing offset
+                                            let onetimeMenuTxtN = "<b>Instagram Black Menu</b>\n\n<b>One Time Actions</b>\n\nSend username and touch what you want to do.";
+
+                                            telegramDeleteMessage(menuMessageId);
+                                            menuMessageId = 0;
+
+                                            makeCheckWatchlistKeyboard(function(listKeybrd){
+                                                telegramSendInline(onetimeMenuTxtN, listKeybrd, function(messId){
+                                                    menuMessageId = messId;
+                                                });
+                                            });
+
+                                            switch(state){
+                                                case "nothing":
+                                                    telegramAnswer(callback_query.id, "Opps!", true);
+                                                    break;
+                                                case "gotAll":
+                                                    telegramAnswer(callback_query.id, "Downloaded all to server.", true);
+                                                    break;
+                                                case "haveThem":
+                                                    telegramAnswer(callback_query.id, "Allready have this users stories.", true);
+                                                    break;
+                                                default:
+                                                    telegramAnswer(callback_query.id, "", false);
+                                            }
+
+                                        });
+
+                                    }else{
+                                        telegramAnswer(callback_query.id, "Opps!", true);
+                                    }
+                                });
+                                break;
+
+                            case "b8": // Close Menu
+                                telegramAnswer(callback_query.id, "", false);
+                                telegramDeleteMessage(menuMessageId);
+                                menuMessageId = 0;
+                                break;
+
+                            case "delDeletable": // delete deletable message if exist
+                                if(delCheckMesId != "0"){
+                                    telegramDeleteMessage(delCheckMesId);
+                                    delCheckMesId = "0";
+                                    telegramAnswer(callback_query.id, "", false);
+                                }else{
+                                    telegramAnswer(callback_query.id, "", false);
+                                }
+                                break;
+
+                            default:
+                                if(callback_query.data.indexOf("watchlistUser-") == 0){
+                                    let idToDelete = (callback_query.data).slice(14);
+                                    removeFromWatchlist(idToDelete, function(usrname){
+                                        makeWatchlistKeyboard(function(listKeybrd){
+                                            telegramEditMessageMarkup(menuMessageId, listKeybrd);
+                                            let deleteMs = usrname + "removed from list.";
+                                            telegramAnswer(callback_query.id, deleteMs, false);
+                                        });
+                                    });
+                                }
+                                if(callback_query.data.indexOf("+üser+") != -1){
+                                    let usernameAndId = callback_query.data;
+
+                                    let n = usernameAndId.indexOf("+üser+");
+                                    let usernameToSend = usernameAndId.slice(0, n);
+                                    let idToCheck = usernameAndId.slice(n+6);
+
+                                    check(idToCheck, true, false, false, true, false, function(got){
+                                        if(got == "nothing"){
+                                            telegramAnswer(callback_query.id, "User don't have any story.", true);
+                                        }else if(got == "opps"){
+                                            telegramAnswer(callback_query.id, "Opps!", true);
+                                        }else{
+
+                                            let deletableMes = "<b>" + usernameToSend + "</b> shared";
+
+                                            for(let v = 0; v < got.length; v++){
+
+                                                if(got[v].is_video == true){
+                                                    //video
+                                                    let timeStamp = got[v].taken_at_timestamp;
+                                                    let timeStampTxt = timestampToDate(timeStamp);
+                                                    let videoRes = got[v].video_resources;
+                                                    let fileURL = videoRes[videoRes.length-1].src;
+
+                                                    let newStoryTxt = "\n<a href='" + fileURL + "'>this</a> story on " + timeStampTxt;
+                                                    deletableMes = deletableMes.concat(newStoryTxt);
+
+                                                }else{
+                                                    //photo
+                                                    let timeStamp = got[v].taken_at_timestamp;
+                                                    let timeStampTxt = timestampToDate(timeStamp);
+                                                    let photoRes = got[v].display_resources;
+                                                    let fileURL = photoRes[photoRes.length-1].src;
+
+                                                    let newStoryTxt = "\n<a href='" + fileURL + "'>this</a> story on " + timeStampTxt;
+                                                    deletableMes = deletableMes.concat(newStoryTxt);
+                                                }
+                                            }
+
+                                            if(delCheckMesId != "0"){
+                                                telegramDeleteMessage(delCheckMesId);
+                                                delCheckMesId = "0";
+                                            }
+                                            telegramSendInline(deletableMes,deleteKeyboard,function(deletableMesId){
+                                                delCheckMesId = deletableMesId;
+                                                telegramAnswer(callback_query.id, "", false);
+                                            });
+                                        }
+                                    });
+                                }
                         }
+
+                    }else{
+                        //do nothing just delete by increasing offset
                     }
                 }
             }
-        };
+        }
 
         telegramListener = setInterval(function(){
             xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/getUpdates', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify({
-                offset:offset
-            }));
-        }, 1000);
+            xhr.send(JSON.stringify({ offset }));
+        }, 10 * 60 * 1000);
 
         isTelegramListenerActive = true;
     }
@@ -1118,9 +1111,7 @@ function stopListenTelegram(){
     isTelegramListenerActive = false;
 }
 
-
-//****************************************************************************************
-
+//#endregion
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -1154,13 +1145,10 @@ chrome.runtime.onMessage.addListener(
 
     });
 
-
-
-
 //refresh watchlist
 function refreshWatchlist(){
 
-    var oldWList = watchList;
+    let oldWList = watchList;
 
     chrome.storage.local.get({'userWatchlist': []}, function(data) {
         watchList = data.userWatchlist;
@@ -1168,21 +1156,16 @@ function refreshWatchlist(){
         if(watchList != oldWList){
             autoCheck();
         }
-    });   
+    });
 }
 refreshWatchlist();
-
-
-
-
-
 
 // Automated Check Function **********************
 function autoCheck(){
     if(autosaveState || telegramNotifyState){  // only if enabled
         if(watchList && watchList.length > 0){
             //console.log('autosave Called');
-            for (var i = 0; i < watchList.length; i++) {
+            for (let i = 0; i < watchList.length; i++) {
                 if(telegramNotifyState && !autosaveState){
                     check(watchList[i].id, true, false, true, false, false);
                 }else if(!telegramNotifyState && autosaveState){
@@ -1190,7 +1173,7 @@ function autoCheck(){
                 }else if(telegramNotifyState && autosaveState){
                     check(watchList[i].id, true, true, true, false, false);
                 }
-            }       
+            }
         }
     }
 }
@@ -1204,21 +1187,18 @@ setInterval(function(){
 //***********************************************
 
 
-
-
-
 function getIdByUsername(username, callback){
     if(callback){
-        var RqstUrl = "https://www.instagram.com/" + username + "/?__a=1&__d=dist";
+        let RqstUrl = "https://www.instagram.com/" + username + "/?__a=1&__d=dist";
 
-        var xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
         xhr.onload = function() {
-            var json = xhr.responseText;                         // Response
+            let json = xhr.responseText;                         // Response
             json = json.replace(/^[^(]*\(([\S\s]+)\);?$/, '$1'); // Turn JSONP in JSON
             json = JSON.parse(json);
 
             if(json.graphql){
-                var id = json.graphql.user.id;
+                let id = json.graphql.user.id;
                 callback(id);
             }else{
                 callback("0");
@@ -1229,18 +1209,16 @@ function getIdByUsername(username, callback){
     }
 }
 
-
-
 function getLastAutosaveById(userId, callback) {
     chrome.storage.local.get({'targetLasts': []}, function(data) {
         targetLasts = data.targetLasts;
 
         if(targetLasts.find(x => x.id === userId)){
-            var index = targetLasts.findIndex(x => x.id === userId);
+            let index = targetLasts.findIndex(x => x.id === userId);
             //console.log(targetLasts[index].last);
             callback(targetLasts[index].last);
         }else{
-            var newUserLast = {id:userId, last:"0"};
+            let newUserLast = {id:userId, last:"0"};
             targetLasts.push(newUserLast);
             chrome.storage.local.set({'targetLasts': targetLasts}, function() {
                 //console.log("set done.");
@@ -1254,11 +1232,11 @@ function getLastNotifyById(userId, callback) {
         targetNotifyLasts = data.targetNotifyLasts;
 
         if(targetNotifyLasts.find(x => x.id === userId)){
-            var index = targetNotifyLasts.findIndex(x => x.id === userId);
+            let index = targetNotifyLasts.findIndex(x => x.id === userId);
             //console.log(targetLasts[index].last);
             callback(targetNotifyLasts[index].last);
         }else{
-            var newUserLast = {id:userId, last:"0"};
+            let newUserLast = {id:userId, last:"0"};
             targetNotifyLasts.push(newUserLast);
             chrome.storage.local.set({'targetNotifyLasts': targetNotifyLasts}, function() {
                 //console.log("set done.");
@@ -1269,28 +1247,26 @@ function getLastNotifyById(userId, callback) {
 }
 function getLastById(userId, callback) {
     getLastAutosaveById(userId, function(lastAutosave){
-        var tmpLastAutosave = lastAutosave;
+        let tmpLastAutosave = lastAutosave;
         getLastNotifyById(userId, function(lastNotify){
             callback(tmpLastAutosave, lastNotify);
         });
     });
 }
 
-
-
 function setLastAutosaveById(userId, last) {
     chrome.storage.local.get({'targetLasts': []}, function(data) {
         targetLasts = data.targetLasts;
 
         if(targetLasts.find(x => x.id === userId)){
-            var index = targetLasts.findIndex(x => x.id === userId);
+            let index = targetLasts.findIndex(x => x.id === userId);
             targetLasts[index].last = last.toString();
 
             chrome.storage.local.set({'targetLasts': targetLasts}, function() {
                 //console.log("set done.");
             });
         }else{
-            var newUserLast = {id:userId, last:last.toString()};
+            let newUserLast = {id:userId, last:last.toString()};
             targetLasts.push(newUserLast);
             chrome.storage.local.set({'targetLasts': targetLasts}, function() {
                 //console.log("set done.");
@@ -1303,7 +1279,7 @@ function setLastNotifyById(userId, last) {
         targetNotifyLasts = data.targetNotifyLasts;
 
         if(targetNotifyLasts.find(x => x.id === userId)){
-            var index = targetNotifyLasts.findIndex(x => x.id === userId);
+            let index = targetNotifyLasts.findIndex(x => x.id === userId);
             targetNotifyLasts[index].last = last.toString();
 
             chrome.storage.local.set({'targetNotifyLasts': targetNotifyLasts}, function() {
@@ -1311,7 +1287,7 @@ function setLastNotifyById(userId, last) {
             });
 
         }else{
-            var newUserLast = {id:userId, last:last.toString()};
+            let newUserLast = {id:userId, last:last.toString()};
             targetNotifyLasts.push(newUserLast);
             chrome.storage.local.set({'targetNotifyLasts': targetNotifyLasts}, function() {
                 //console.log("set done.");
@@ -1324,12 +1300,10 @@ function setLastById(userId, lastAutosave, lastNotify) {
     setLastNotifyById(userId, lastNotify);
 }
 
-
-
 function check(targetId, isSilent, isDownload, notify, unSaved = false, offList = false, callback){
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.onload = function() {
-        var json = xhr.responseText;                         // Response
+        let json = xhr.responseText;                         // Response
         json = json.replace(/^[^(]*\(([\S\s]+)\);?$/, '$1'); // Turn JSONP in JSON
         try {
             json = JSON.parse(json);
@@ -1340,17 +1314,17 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
         }
 
         if(!offList){
-            var allStories = json.data.user.feed_reels_tray.edge_reels_tray_to_reel.edges;
+            let allStories = json.data.user.feed_reels_tray.edge_reels_tray_to_reel.edges;
 
-            var storiesOfTarget = null;
+            let storiesOfTarget = null;
 
-            for(var x in allStories){
+            for(let x in allStories){
                 if(allStories[x].node.id == targetId){
                     storiesOfTarget = allStories[x];
                 }
-            }               
+            }
         }else{
-            var storiesOfTarget = json.data.reels_media[0];
+            let storiesOfTarget = json.data.reels_media[0];
         }
         // we got stories of target
 
@@ -1372,9 +1346,9 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
 
                 //check if last story of target downloaded
                 if(offList){
-                    var lastOnTarget = json.data.reels_media[0].latest_reel_media;
+                    let lastOnTarget = json.data.reels_media[0].latest_reel_media;
                 }else{
-                    var lastOnTarget = storiesOfTarget.node.latest_reel_media;    
+                    let lastOnTarget = storiesOfTarget.node.latest_reel_media;    
                 }
                 //console.log(storiesOfTarget.node.latest_reel_media);
 
@@ -1383,9 +1357,9 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                     //console.log("Second JSON request sent");
                     //save them
 
-                    var xhr2 = new XMLHttpRequest();
+                    let xhr2 = new XMLHttpRequest();
                     xhr2.onload = function() {
-                        var json2 = xhr2.responseText;                         // Response
+                        let json2 = xhr2.responseText;                         // Response
                         json2 = json2.replace(/^[^(]*\(([\S\s]+)\);?$/, '$1'); // Turn JSONP in JSON
                         try {
                             json2 = JSON.parse(json2);
@@ -1403,20 +1377,20 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                         // we got all we need which what is on tagets story circle
                         //console.log(json2);
 
-                        var storyDataOfTarget = json2.data.reels_media[0].items; // all stories curently in circle
+                        let storyDataOfTarget = json2.data.reels_media[0].items; // all stories curently in circle
 
                         if(callback && !isDownload && !notify && unSaved){
                             callback(storyDataOfTarget);
                         }
 
-                        var storyCountOnCircle = json2.data.reels_media[0].items.length;
+                        let storyCountOnCircle = json2.data.reels_media[0].items.length;
                         lastOnTarget = json2.data.reels_media[0].latest_reel_media;
-                        var targetUsername = json2.data.reels_media[0].owner.username;
+                        let targetUsername = json2.data.reels_media[0].owner.username;
 
-                        var lastAutosaveOnCircle = -1;
-                        var lastNotifyOnCircle = -1;
+                        let lastAutosaveOnCircle = -1;
+                        let lastNotifyOnCircle = -1;
 
-                        for(var x in storyDataOfTarget){
+                        for(let x in storyDataOfTarget){
                             if(storyDataOfTarget[x].taken_at_timestamp == lastAutosave){
                                 lastAutosaveOnCircle = x;
                             }
@@ -1425,8 +1399,8 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                             }
                         }
 
-                        var autosaveCondition = lastAutosaveOnCircle == -1;
-                        var notifyCondition = lastNotifyOnCircle == -1;
+                        let autosaveCondition = lastAutosaveOnCircle == -1;
+                        let notifyCondition = lastNotifyOnCircle == -1;
 
                         if(autosaveCondition || notifyCondition){  // if we dont have any of circle stories, start saving from 0
                             //console.log("we dont have any of circle stories");
@@ -1458,7 +1432,7 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                                         chrome.downloads.download({
                                             url: fileURL,
                                             filename: "autosavedstories/" + targetUsername + "/" + targetUsername + "_" + fileName + ".jpg"
-                                        });   
+                                        });
                                     }
 
                                     if(notify && notifyCondition){
@@ -1536,7 +1510,7 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                                 setLastAutosaveById(targetId, lastOnTarget);
                             }
                             if(notify){
-                                setLastNotifyById(targetId, lastOnTarget);  
+                                setLastNotifyById(targetId, lastOnTarget);
                             }
                         }
                         if(!isSilent){
@@ -1548,15 +1522,15 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
 
                     };
 
-                    var targetStoriesUrl = "https://www.instagram.com/graphql/query/?query_hash=5ec1d322b38839230f8e256e1f638d5f&variables=%7B%22reel_ids%22%3A%5B%22" + targetId + "%22%5D%2C%22tag_names%22%3A%5B%5D%2C%22location_ids%22%3A%5B%5D%2C%22highlight_reel_ids%22%3A%5B%5D%2C%22precomposed_overlay%22%3Afalse%2C%22show_story_viewer_list%22%3Atrue%2C%22story_viewer_fetch_count%22%3A50%2C%22story_viewer_cursor%22%3A%22%22%2C%22stories_video_dash_manifest%22%3Afalse%7D";
+                    let targetStoriesUrl = "https://www.instagram.com/graphql/query/?query_hash=5ec1d322b38839230f8e256e1f638d5f&variables=%7B%22reel_ids%22%3A%5B%22" + targetId + "%22%5D%2C%22tag_names%22%3A%5B%5D%2C%22location_ids%22%3A%5B%5D%2C%22highlight_reel_ids%22%3A%5B%5D%2C%22precomposed_overlay%22%3Afalse%2C%22show_story_viewer_list%22%3Atrue%2C%22story_viewer_fetch_count%22%3A50%2C%22story_viewer_cursor%22%3A%22%22%2C%22stories_video_dash_manifest%22%3Afalse%7D";
 
                     xhr2.open('GET', targetStoriesUrl);
-                    xhr2.send(); 
+                    xhr2.send();
 
                 }else{
                     //nothing new
                     if(!isSilent){
-                        alert("Allready have those!");  
+                        alert("Allready have those!");
                     }
                     if(callback && !(!isDownload && !notify && unSaved)){
                         callback("haveThem");
