@@ -219,7 +219,7 @@ function getIdByUsername(username, callback){
 }
 
 // Create a new list item when clicking on the "Add" button
-function newElement() {       
+function newElement() {
 
     var inputValue = document.getElementById("usernameInput").value;
 
@@ -284,7 +284,7 @@ function updateGhostMode(ghostmode){
 
             settings.ghostMode = ghostmode;
 
-            chrome.browserAction.setIcon({ path: ghostmode ? "iconGhost.png" : "icon.png" });
+            chrome.action.setIcon({ path: ghostmode ? "images/iconGhost.png" : "images/icon.png" });
 
             chrome.storage.local.set({'savedSettings': settings}, function() {
                 //console.log("saved.");

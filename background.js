@@ -261,23 +261,21 @@ function updateSettings(){
 
         }else{
             settings = {autosaver:autosaveState, interval:checkInterval, ghostMode:ghostModeState, telegramBotState:telegramBotState, telegramToken:telegramToken, telegramChatId:telegramChatId, telegramNotifyState:telegramNotifyState}; // default settings
-            chrome.storage.local.set({'savedSettings': settings}, function() {
-                //console.log("done.");
-            });
+            chrome.storage.local.set({'savedSettings': settings});
         }
     });
 }
 updateSettings();
 
-chrome.webRequest.onBeforeRequest.addListener(
-    () => ({ cancel: ghostModeState }),
-    { urls: ['*://*.instagram.com/stories/reel/seen*',
-             '*://*.instagram.com/*/stories/reel/seen*',
-             '*://*.instagram.com/*/*/stories/reel/seen*',
-             '*://*.instagram.com/*/*/direct_v2/threads/*/items/*/seen*'
-    ]
-    }, ['blocking']
-);
+// chrome.webRequest.onBeforeRequest.addListener(
+//     () => ({ cancel: ghostModeState }),
+//     { urls: ['*://*.instagram.com/stories/reel/seen*',
+//              '*://*.instagram.com/*/stories/reel/seen*',
+//              '*://*.instagram.com/*/*/stories/reel/seen*',
+//              '*://*.instagram.com/*/*/direct_v2/threads/*/items/*/seen*'
+//     ]
+//     }, ['blocking']
+// );
 
 //#region Telegram Bot logic
 
@@ -1100,7 +1098,7 @@ function startListenTelegram() {
             xhr.open("POST", 'https://api.telegram.org/bot' + telegramToken + '/getUpdates', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify({ offset }));
-        }, 10 * 60 * 1000);
+        }, 60 * 1000);
 
         isTelegramListenerActive = true;
     }
@@ -1313,10 +1311,10 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
             return;
         }
 
+        let storiesOfTarget = null;
+
         if(!offList){
             let allStories = json.data.user.feed_reels_tray.edge_reels_tray_to_reel.edges;
-
-            let storiesOfTarget = null;
 
             for(let x in allStories){
                 if(allStories[x].node.id == targetId){
@@ -1344,11 +1342,13 @@ function check(targetId, isSilent, isDownload, notify, unSaved = false, offList 
                     lastNotify = "0";
                 }
 
+                let lastOnTarget = 0;
+
                 //check if last story of target downloaded
                 if(offList){
-                    let lastOnTarget = json.data.reels_media[0].latest_reel_media;
+                    lastOnTarget = json.data.reels_media[0].latest_reel_media;
                 }else{
-                    let lastOnTarget = storiesOfTarget.node.latest_reel_media;    
+                    lastOnTarget = storiesOfTarget.node.latest_reel_media;
                 }
                 //console.log(storiesOfTarget.node.latest_reel_media);
 
