@@ -1,84 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Instagram Black Options</title>
 
-        <style>
-            body{
-                text-align: center;
-            }
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram Black Options</title>
 
-            .btn{
-                margin: 5px;
-                margin-top: 30px;
-                font-size: 16px;
-                border-radius: 5px;
+    <script src="options.js"></script>
 
-                /* make the list items unselectable */
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-            }
-            .clrBtn{
-                font-size: 16px;
-                border-radius: 5px;
+    <style>
+        body {
+            text-align: center;
+        }
 
-                /* make the list items unselectable */
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-            }
-            .opts *{
-                margin-top: 20px;
+        .container {
+            display: inline-block;
+            text-align: left;
+        }
 
-                /* make the list items unselectable */
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-            }
-            .labelH{
-                font-size: 15px;
-            }
-            .hidden{
-                display: none !important;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="opts" style="display: inline-block; text-align: left; padding: 10px">
-            <input type="checkbox" id="autosaverToggle" name="autosaverToggle" value="true" checked>
-            <label class="labelH" title="Only works while browser working." for="autosaverToggle">Enable Autosaver</label>
-            <br>
-            <label class="labelH" for="interval">Autosaver interval (in seconds 10-3600): </label>
-            <input type="number" id="interval" name="interval" min="10" max="3600" value="30">
-            <br>
-            <input type="checkbox" id="ghostModeToggle" name="ghostModeToggle" value="true">
-            <label class="labelH" title="Just for instagram, stories saved by extension will always be anonymous." for="ghostModeToggle"> Enable Ghost Mode for Instagram</label>
-            <br>
-            <input type="checkbox" id="telegramBotToggle" name="telegramBotToggle" value="true">
-            <label class="labelH" title="You have to provide token." for="telegramBotToggle">Enable TelegramBot (Token Required)</label>
-            <br>
-            <label class="labelH hidden bot" for="telegramToken">TelegramBot Token: </label>
-            <input class="hidden bot" type="text" id="telegramToken" name="telegramToken" required>
-            <br>
-            <label class="labelH hidden bot" for="telegramChatId">Chat Id: </label>
-            <input class="hidden bot" type="text" id="telegramChatId" name="telegramChatId" required>
-            <br>
-            <input class="hidden bot" type="checkbox" id="telegramNotifyToggle" name="telegramNotifyToggle" value="true">
-            <label class="labelH hidden bot" title="If you enable you will get notifications." for="telegramNotifyToggle"> Enable Telegram Notification</label>
-            <br>
-            <button class="clrBtn" id="clearAutosaveStorage">Clear Autosave History</button>
-            <br>
-            <button class="clrBtn" id="clearNotifyStorage">Clear Notification History</button>
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .option {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .option input[type="text"] {
+            flex: 1
+        }
+
+        .hint {
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="option-list">
+
+            <div class="option">
+                <input type="checkbox" id="autosaver_toggle" checked>
+                <label class="label" for="autosaver_toggle">
+                    <div>Enable Autosaver</div>
+                    <i class="hint">Only works while browser working.</i>
+                </label>
+            </div>
+
+            <div class="option">
+                <label class="label" for="update_internal">
+                    <div>Autosaver interval</div>
+                    <i class="hint">(in seconds 10-3600)</i>
+                </label>
+                <input type="number" id="update_internal" min="10" max="3600" value="30">
+            </div>
+
+            <div class="option">
+                <input type="checkbox" id="ghost_mode_toggle">
+                <label for="ghost_mode_toggle">
+                    <div>Enable Instagram Ghost Mode</div>
+
+                </label>
+            </div>
+
+            <div class="option">
+                <input type="checkbox" id="telegram_bot_toggle" checked>
+                <label for="telegram_bot_toggle">
+                    Enable Telegram Notification <i class="hint">(Token Required!)</i>
+                </label>
+            </div>
+
+            <div class="option">
+                <label for="telegram_token">Telegram Bot Token: </label>
+                <input type="text" id="telegram_token" required>
+            </div>
+
+            <div class="option">
+                <label for="telegram_chat_id">Telegram Chat Id: </label>
+                <input type="text" id="telegram_chat_id" required>
+            </div>
+
+            <button id="reset_history_storage">Clear Autosave History</button>
+
+            <button id="save_options">Save</button>
         </div>
-        <br>
+    </div>
 
-        <button class="btn" id="saveOptions">Save</button>
+</body>
 
-        <script src="options.js"></script>
-    </body>
 </html>
