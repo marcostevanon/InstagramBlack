@@ -177,12 +177,12 @@ list.addEventListener('click', function(ev) {
 
 
 // Add listener for buttons
-var addBtn = document.getElementById("addBtn");
+var addBtn = document.getElementById("add_btn");
 addBtn.addEventListener('click', function(ev) {
     newElement();
 }, false);
 
-var chkBtn = document.getElementById("chkBtn");
+var chkBtn = document.getElementById("check_btn");
 chkBtn.addEventListener('click', function(ev) {
 
     var inputValue = document.getElementById("username-input").value;
