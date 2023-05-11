@@ -15,4 +15,9 @@ module.exports = {
   plugins: [
     new CopyPlugin({ patterns: [{ from: ".", to: ".", context: "public" }] }),
   ],
+  devServer: {
+    static: path.join(__dirname, "dist"),
+    port: 9002,
+  },
+  devtool: "source-map",
 };
