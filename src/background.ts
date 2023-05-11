@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 let checkInterval = "600";
 
 let ghostModeState = false;

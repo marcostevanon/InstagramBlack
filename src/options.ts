@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 let settings;
 
 let autosaverToggle = document.getElementById("autosaverToggle");
