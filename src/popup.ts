@@ -27,6 +27,8 @@ function updateTelegramNotifyState(telegramNotify){
     });
 }
 
+// TODO mouse hint
+// title="Telegram Notifications Disabled"
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -46,12 +48,12 @@ chrome.runtime.onMessage.addListener(
 
 
 
-document.getElementById("ghostBtn").addEventListener('click', function() {
+document.getElementById("ghost_btn").addEventListener('click', function() {
     updateGhostMode(!ghostModeState);
 });
 
 
-document.getElementById("telegramIcon").addEventListener('click', function() {
+document.getElementById("telegram_icon").addEventListener('click', function() {
     updateTelegramNotifyState(!telegramNotifyState);
 });
 
@@ -82,7 +84,7 @@ function syncList(){
             var li = document.createElement("li");
             var t = document.createTextNode(watchList[i].username);
             li.appendChild(t);
-            document.getElementById("userListUL").appendChild(li);
+            document.getElementById("user_list").appendChild(li);
             li.setAttribute("id", watchList[i].id);
             li.setAttribute('title', "Click to check now.");
 
@@ -183,13 +185,13 @@ addBtn.addEventListener('click', function(ev) {
 var chkBtn = document.getElementById("chkBtn");
 chkBtn.addEventListener('click', function(ev) {
 
-    var inputValue = document.getElementById("usernameInput").value;
+    var inputValue = document.getElementById("username-input").value;
 
     chrome.runtime.sendMessage({command: "check", username: inputValue}, function(response) {
         //console.log(response.ok);
     });
 
-    document.getElementById("usernameInput").value = "";
+    document.getElementById("username-input").value = "";
 
 }, false);
 
@@ -222,7 +224,7 @@ function getIdByUsername(username, callback){
 // Create a new list item when clicking on the "Add" button
 function newElement() {
 
-    var inputValue = document.getElementById("usernameInput").value;
+    var inputValue = document.getElementById("username-input").value;
 
     if (inputValue === '') {
         alert("You must enter username!");
@@ -242,11 +244,11 @@ function newElement() {
                         var li = document.createElement("li");
                         var t = document.createTextNode(inputValue);
                         li.appendChild(t);
-                        document.getElementById("userListUL").appendChild(li);
+                        document.getElementById("user_list").appendChild(li);
                         li.setAttribute("id", id);
                         li.setAttribute('title', "Click to check now.");
 
-                        document.getElementById("usernameInput").value = "";
+                        document.getElementById("username-input").value = "";
 
                         var span = document.createElement("SPAN");
                         var txt = document.createTextNode("\u00D7");
@@ -267,7 +269,7 @@ function newElement() {
                         }
                         updatePopup();
                     }else{
-                        document.getElementById("usernameInput").value = "";
+                        document.getElementById("username-input").value = "";
                         alert("Invalid User!");
                     }
                 });
@@ -315,21 +317,21 @@ function updatePopup(){
 
             if(ghostModeState){
                 document.getElementById("ghostText").classList.remove("off");
-                document.getElementById("ghostBtn").style.color = "limegreen";
+                document.getElementById("ghost_btn").style.color = "limegreen";
             }else{
                 document.getElementById("ghostText").classList.add("off");
-                document.getElementById("ghostBtn").style.color = "white";
+                document.getElementById("ghost_btn").style.color = "white";
             }
 
 
-            var telegramIcon = document.getElementById("telegramIcon");
+            var telegram_icon = document.getElementById("telegram_icon");
 
             if(telegramNotifyState){
-                telegramIcon.setAttribute('title', "Telegram Notifications Active");
-                telegramIcon.style.color = "#0088cc";
+                telegram_icon.setAttribute('title', "Telegram Notifications Active");
+                telegram_icon.style.color = "#0088cc";
             }else{
-                telegramIcon.setAttribute('title', "Telegram Notifications Disabled");
-                telegramIcon.style.color = "white";
+                telegram_icon.setAttribute('title', "Telegram Notifications Disabled");
+                telegram_icon.style.color = "white";
             }
 
 

@@ -1,187 +1,186 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="viewport" charset="UTF-8">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+<head>
+    <meta name="viewport" charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            min-width: 375px;
+        }
 
-        <style>
-            body {
-                margin: 0;
-                min-width: 500px;
-            }
+        /* Include the padding and border in an element's total width and height */
+        * {
+            box-sizing: border-box;
+        }
 
-            /* Include the padding and border in an element's total width and height */
-            * {
-                box-sizing: border-box;
-            }
+        /* Style the header */
+        .header {
+            background-color: #202020;
+            padding: 15px 20px;
+            color: white;
+            text-align: center;
 
-            /* Remove margins and padding from the list */
-            ul {
-                margin: 0;
-                padding: 0;
-            }
+            display: flex;
+        }
 
-            /* Style the list items */
-            ul li {
-                cursor: pointer;
-                position: relative;
-                padding: 12px 8px 12px 40px;
-                list-style-type: none;
-                background: #eee;
-                font-size: 18px;
-                transition: 0.2s;
+        /* Clear floats after the header */
+        .header:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
 
-                /* make the list items unselectable */
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-            }
+        .icon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px
+        }
 
-            /* Set all odd list items to a different color (zebra-stripes) */
-            ul li:nth-child(odd) {
-                background: #f9f9f9;
-            }
+        .icon {
+            cursor: pointer;
+            font-size: 20px;
+        }
 
-            /* Darker background-color on hover */
-            ul li:hover {
-                background: #ddd;
-            }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
 
-            /* Style the close button */
-            .close {
-                position: absolute;
-                right: 0;
-                top: 0;
-                padding: 12px 16px 12px 16px;
-            }
+        .input-container {
+            display: flex;
+            margin-left: 15px;
+            margin-right: 30px;
+        }
 
-            .close:hover {
-                background-color: #f44336;
-                color: white;
-            }
+        .input-container input {
+            flex: 1;
+        }
 
-            /* Style the header */
-            .header {
-                background-color: #434749;
-                padding: 10px 30px 30px 30px;
-                color: white;
-                text-align: center;
+        /* Style the input */
+        input {
+            height: 40px;
+            margin: 0;
+            border: none;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            min-width: 200px;
+            padding: 10px;
+            font-size: 16px;
+        }
 
-                /* make the list items unselectable */
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-            }
+        input:focus {
+            outline-width: 0;
+        }
 
-            /* Clear floats after the header */
-            .header:after {
-                content: "";
-                display: table;
-                clear: both;
-            }
+        /* Style the "Add" button */
+        .button {
+            border: 5px white solid;
+            height: 40px;
+            padding: 5px;
+            width: 17%;
+            background: #d9d9d9;
+            color: #555;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-            /* Style the input */
-            input {
-                height: 40px;
-                margin: 0;
-                border: none;
-                border-radius: 0;
-                width: 60%;
-                padding: 10px;
-                float: left;
-                font-size: 16px;
-            }
-            input:focus {
-                outline-width: 0;
-            }
+        .button:hover {
+            background-color: #bbb;
+        }
 
-            /* Style the "Add" button */
-            .addBtn {
-                border: 5px white solid;
-                height: 40px;
-                padding: 5px;
-                width: 20%;
-                background: #d9d9d9;
-                color: #555;
-                float: left;
-                text-align: center;
-                font-size: 16px;
-                cursor: pointer;
-                transition: 0.3s;
-                border-radius: 0;
-            }
+        .current-operation-container {
+            background-color: #202020;
+            display: flex;
+        }
 
-            .addBtn:hover {
-                background-color: #bbb;
-            }
+        /* Remove margins and padding from the list */
+        ul {
+            margin: 0;
+            padding: 0;
+        }
 
-            .optBtn{
-                cursor: pointer;
-                font-size: 20px;
-                color: white;
-                position: absolute;
-                top: 10px;
-                right: 10px;
-            }
+        /* Style the list items */
+        ul li {
+            cursor: pointer;
+            padding: 12px 8px 12px 40px;
+            list-style-type: none;
+            background: #eee;
+            font-size: 18px;
+            transition: 0.2s;
+        }
 
-            .inactive{
-                text-decoration: line-through;
-            }
+        /* Set all odd list items to a different color (zebra-stripes) */
+        ul li:nth-child(odd) {
+            background: #f9f9f9;
+        }
 
-            .ghostBtn{
-                cursor: pointer;
-                font-size: 18px;
-                color: white;
-                position: absolute;
-                top: 10px;
-                left: 10px;
-            }
+        /* Darker background-color on hover */
+        ul li:hover {
+            background: #ddd;
+        }
 
-            .ghostMode{
-                margin: 0px 0px 0px 25px !important;
-                padding: 0px !important;
-                font-size: 15px;
-                color: limegreen;
-                position: absolute;
-                top: 8px;
-                left: 10px;
-                display: block;
-            }
+        /* Style the close button */
+        .close {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 12px 16px 12px 16px;
+        }
 
-            .off{
-                display: none !important;
-            }
+        .close:hover {
+            background-color: #f44336;
+            color: white;
+        }
 
-            .telegram{
-                cursor: pointer;
-                font-size: 20px;
-            }
+        /* disabled css */
+        .ghostMode {
+            margin: 0px 0px 0px 25px !important;
+            padding: 0px !important;
+            font-size: 15px;
+            color: limegreen;
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            display: block;
+        }
 
-        </style>
+        .off {
+            display: none !important;
+        }
+    </style>
 
 
-    </head>
-    <body>
+</head>
 
-        <div id="popupDiv" class="header">
-            <i id="telegramIcon" class="fab fa-telegram-plane telegram" title="Telegram Notifications Disabled"></i>
-            <i id="ghostBtn" class="fas fa-ghost ghostBtn"></i>
-            <h3 id="ghostText" class="ghostMode off">Ghost Mode Active</h3>
-            <h2 style="margin-bottom: 20px">Instagram Black</h2>
-            <i id="go-to-options" class="fas fa-cog optBtn"></i>
-            <input type="text" id="usernameInput" placeholder="username...">
-            <span id="addBtn" class="addBtn">Add</span>
-            <span id="chkBtn" class="addBtn">Check</span>
-
+<body>
+    <div class="header">
+        <div class="form-container">
+            <h2>Instagram Black</h2>
+            <div class="input-container">
+                <input type="text" id="username-input" placeholder="add username...">
+                <span id="addBtn" class="button">Add</span>
+                <span id="chkBtn" class="button">Check</span>
+            </div>
         </div>
+        <div class="icon-container">
+            <i id="ghost_btn" class="fas fa-ghost icon" title="Ghost mode"></i>
+            <i id="telegram_icon" class="fab fa-telegram-plane icon"></i>
+            <i id="go-to-options" class="fas fa-cog icon" title="Settings"></i>
+            <!-- <h3 id="ghostText" class="ghostMode off">Ghost Mode Active</h3> -->
+        </div>
+    </div>
 
-        <ul id="userListUL">
-        </ul>
+    <div id="current_operation" class="current-operation-container">
+    </div>
 
-        <script src="popup.js"></script>
+    <ul id="user_list">
+    </ul>
 
-    </body>
+    <script src="popup.js"></script>
+</body>
+
 </html>
